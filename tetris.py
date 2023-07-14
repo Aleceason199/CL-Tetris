@@ -29,16 +29,12 @@ class tetris():
         self.lastMove = time.time()
         self.nodeDic  = []
         self.simulatedPieces = []
-        self.score = "4000"
+        self.score = 0
 
         for y in range(0, 20):
             for x in range(0, 10):
                 self.nodeDic.append(node(x, y, False))
 
-        
-                    
-
-        
         self.game()
     
     def getNode(self, x, y):
@@ -75,7 +71,7 @@ class tetris():
             if y == 6:
                 line = line + " # SCORE: #"
             if y == 7:
-                line = line + " # " + self.score + "   #"
+                line = line + " # " + str(self.score) + "   #"
             if y == 10:
                 line = line + " ####################"
             if y == 11:
@@ -138,18 +134,26 @@ class tetris():
 
         node.isFull = True
 
-        self.currPieceType = random.randint(1, 5)
+        self.currPieceType = random.randint(1, 7)
         self.currPiece = node
         self.currRotation = "down"
 
         self.movingPiece = True
 
     def rotatePiece(self, dir):
+        blocked = False
         if dir == "left":
-            self.currRotation = self.rotations[self.rotations.index(self.currRotation)-1]
+            newRotation = self.rotations[self.rotations.index(self.currRotation)-1]
         else:
-            self.currRotation = self.rotations[self.rotations.index(self.currRotation)+1]
+            newRotation = self.rotations[self.rotations.index(self.currRotation)+1]
+        
+        for x in self.simulatePieces(self.currPieceType, newRotation):
+            if self.testNode(x[0], x[1])=="hit":
+                blocked = True
+                break
 
+        if blocked==False:
+            self.currRotation = newRotation
 
     def movePieceDown(self):
 
@@ -206,207 +210,173 @@ class tetris():
     #5 S
     #6 rS
     #7 T
-    def changeSPieces(self, type, isFull):
+    def simulatePieces(self, type, rotation):
 
         if type==1:
-            self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x+1, self.currPiece.y+1], 
-                                        [self.currPiece.x, self.currPiece.y+1]]
+            simulated = [[self.currPiece.x, self.currPiece.y],
+                        [self.currPiece.x+1, self.currPiece.y], 
+                        [self.currPiece.x+1, self.currPiece.y+1], 
+                        [self.currPiece.x, self.currPiece.y+1]]
 
-            for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
+        elif type==2:
+            if rotation=="down":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y-2], 
+                            [self.currPiece.x, self.currPiece.y-3]]
 
+            elif rotation=="up":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y-2], 
+                            [self.currPiece.x, self.currPiece.y-3]]
 
-        if type==2:
-            if self.currRotation=="down":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x, self.currPiece.y-1], 
-                                        [self.currPiece.x, self.currPiece.y-2], 
-                                        [self.currPiece.x, self.currPiece.y-3]]
+            elif rotation=="left":
 
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x-2, self.currPiece.y], 
+                            [self.currPiece.x-3, self.currPiece.y]]
+
+            elif rotation=="right":              
+
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x+2, self.currPiece.y], 
+                            [self.currPiece.x+3, self.currPiece.y]]
+
+        elif type==3:
+            if rotation=="down":
+
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y-2]]
+
+            elif rotation=="up":
+
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1], 
+                            [self.currPiece.x, self.currPiece.y+2]]
+
+            elif rotation=="right":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x-2, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1]]
+
+            elif rotation=="left":
                 
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x+2, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1]]
 
-            if self.currRotation=="up":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x, self.currPiece.y-1], 
-                                        [self.currPiece.x, self.currPiece.y-2], 
-                                        [self.currPiece.x, self.currPiece.y-3]]
-                
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
+        elif type==4:
+            if rotation=="down":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y-2]]
 
-            if self.currRotation=="left":
+            elif rotation=="up":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1], 
+                            [self.currPiece.x, self.currPiece.y+2]]
 
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x-2, self.currPiece.y], 
-                                        [self.currPiece.x-3, self.currPiece.y]]
-                
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
+            elif rotation=="right":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x-2, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1]]
 
-            if self.currRotation=="right":              
-
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x+2, self.currPiece.y], 
-                                        [self.currPiece.x+3, self.currPiece.y]]
-                
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-
-
-        if type==3:
-            if self.currRotation=="down":
-
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y-1], 
-                                        [self.currPiece.x, self.currPiece.y-2]]
-                
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="up":
-                if self.currPiece.x < 1:
-                    self.currPiece = self.getNode(1, self.currPiece.y)
-
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y+1], 
-                                        [self.currPiece.x, self.currPiece.y+2]]
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="right":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x-2, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y-1]]
-  
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="left":
-                
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x+2, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y+1]]
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-
-
-        if type==4:
-            if self.currRotation=="down":
-                if self.currPiece.x < 1:
-                    self.currPiece = self.getNode(1, self.currPiece.y)
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y-1], 
-                                        [self.currPiece.x, self.currPiece.y-2]]
-                
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="up":
-                if self.currPiece.x > 8:
-                    self.currPiece = self.getNode(8, self.currPiece.y)
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y+1], 
-                                        [self.currPiece.x, self.currPiece.y+2]]
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="right":
-                if self.currPiece.x > 2:
-                    self.currPiece = self.getNode(2, self.currPiece.y)
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x-2, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y+1]]
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="left":
-                if self.currPiece.x > 7:
-                    self.currPiece = self.getNode(7, self.currPiece.y)
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x+2, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y-1]]   
+            elif rotation=="left":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x+2, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1]]   
             
+        elif type==5:
+            if rotation=="down":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x+1, self.currPiece.y-1]]
 
-                for node in self.simulatedPieces:
+            elif rotation=="up":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1], 
+                            [self.currPiece.x-1, self.currPiece.y+1]]
+
+            elif rotation=="right":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x+1, self.currPiece.y+1], 
+                            [self.currPiece.x, self.currPiece.y-1]]
+
+            elif rotation=="left":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x-1, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y+1]]
+                      
+        elif type==6:
+            if rotation=="down":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1], 
+                            [self.currPiece.x+1, self.currPiece.y+1]]
+            elif rotation=="up":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x-1, self.currPiece.y-1], 
+                            [self.currPiece.x+1, self.currPiece.y]]
+            elif rotation=="left":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x+1, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y+1]]
+            elif rotation=="right":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x-1, self.currPiece.y+1], 
+                            [self.currPiece.x, self.currPiece.y-1]]
+        elif type==7:
+            if rotation=="down":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y+1]]
+            if rotation=="up":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1]]
+            if rotation=="left":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x-1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y+1]]
+            if rotation=="right":
+                simulated = [[self.currPiece.x, self.currPiece.y],
+                            [self.currPiece.x+1, self.currPiece.y], 
+                            [self.currPiece.x, self.currPiece.y-1], 
+                            [self.currPiece.x, self.currPiece.y+1]]
+        
+        return simulated
+
+    def changeSPieces(self, type, isFull):
+        
+        self.simulatedPieces = self.simulatePieces(type, self.currRotation)
+        for node in self.simulatedPieces:
                     self.getNode(node[0], node[1]).isFull = isFull
                     self.getNode(node[0], node[1]).simulatedPiece = isFull
-        if type==5:
-            if self.currRotation=="down":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y-1], 
-                                        [self.currPiece.x+1, self.currPiece.y-1]]
-
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="up":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x, self.currPiece.y+1], 
-                                        [self.currPiece.x-1, self.currPiece.y+1]]
-                 
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="right":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x+1, self.currPiece.y], 
-                                        [self.currPiece.x+1, self.currPiece.y+1], 
-                                        [self.currPiece.x, self.currPiece.y-1]]
-
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
-            if self.currRotation=="left":
-                self.simulatedPieces = [[self.currPiece.x, self.currPiece.y],
-                                        [self.currPiece.x-1, self.currPiece.y], 
-                                        [self.currPiece.x-1, self.currPiece.y-1], 
-                                        [self.currPiece.x, self.currPiece.y+1]]
-                    
-                for node in self.simulatedPieces:
-                    self.getNode(node[0], node[1]).isFull = isFull
-                    self.getNode(node[0], node[1]).simulatedPiece = isFull
-
+        
     def checkLineClear(self):
+        breakCount=0
         for y in range(0, 20):
             c=0
             for x in range(0, 10):
@@ -417,22 +387,26 @@ class tetris():
 
             if c==10:
                 self.breakLine(y)
+                breakCount = breakCount + 1
 
+        if breakCount == 4:
+            self.score = self.score + 800
+        elif breakCount > 0:
+            self.score = self.score + (breakCount*100)
+            
     def breakLine(self, row):
 
         for x in range(0, 10):
             self.getNode(x , row).isFull = False
 
-        for y in range (row, 20):
+        for y in range(row, 0, -1):
             for x in range(0, 10):
-                if self.getNode(x, y).isFull == True:
-                    self.getNode(x, y).isFull = False
-                    self.getNode(x, y+1).isFull = True
-
-    def checkNodes(self, nodes):
-        for x in nodes:
-            if self.getNode(x[0], x[1]).isFull==True or self.testNode(x[0], x[1])=="hit":
-                return True
+                try:
+                    if self.getNode(x, y).isFull == True:
+                        self.getNode(x, y).isFull = False
+                        self.getNode(x, y+1).isFull = True
+                except:
+                    break
 
 tetris()
                 
