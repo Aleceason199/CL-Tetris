@@ -3,55 +3,73 @@ import time
 import msvcrt
 import random
 
-#making a clear function
+#Making a clear function.
 clear = lambda: os.system('cls' if os.name=='nt' else 'clear')
 
-#display board
-#update every one second
-#if line full delete
-
-#class for the nodes
+#Class for the nodes that make up the tetris board.
 class node():
     def __init__(self, x: int, y: int, isFull: bool):
-        self.x = x
-        self.y = y
-        self.isFull = isFull
-        self.simulatedPiece = False
+        self.x = x #x pos
+        self.y = y #y pos
+        self.isFull = isFull #bool for if node has block on it or not.
+        self.simulatedPiece = False #bool for if it is the current pieces block.
 
+#Class for the game
 class tetris():
+    #Inititates the tetris class, making variables and creating the nodes used for the board.
     def __init__(self):
+        #dictionary of the possible rotations used to cycle through them left or right.
         self.rotations = ['left', 'down', 'right', 'up', 'left', 'up']
+        #Checking if alive.
         self.alive = True
+        #var for checking if there is currently a piece spawned in.
         self.movingPiece = False
+        #var for storing the current moving piece.
         self.currPiece = node(0, 0, False)
+        #var for storing the current piece type.
         self.currPieceType = 2
+        #var for storing the current pieces rotation.
         self.currRotation = "down"
+        #var for storing the time at which the last movePieceDown function was called.
         self.lastMove = time.time()
+        #dictionary for storing the board nodes.
         self.nodeDic  = []
+        #dictionary for storing the nodes highlighted based on the current piece type/rotation, e.g a I block will have the 3 nodes
+        #above the current position highlighted.
         self.simulatedPieces = []
+        #var for storing the score.
         self.score = 0
+        #var for checking if the last line clear was a tetris.
+        self.lastTetris = False
 
+        #creating all of the nodes and adding them to the node dictionary.
         for y in range(0, 20):
             for x in range(0, 10):
                 self.nodeDic.append(node(x, y, False))
 
+        #game start.
         self.game()
     
+    #returns the node from the node dictionary at the position.
     def getNode(self, x, y):
         return self.nodeDic[y*10+x]
 
     def testNode(self, x, y):
-
+        
+        #testing if a node is going out of bounds on the x paramaters
         if (x == -1)|(x == 10):
             return "hit"
+        #if the getNode function trys to call something out of bounds it will except and return that it is hit therefore not viable.
         try:
+            #if it hits a node other than its own pieces(simulated pieces) it will return hit.
             if self.getNode(x, y).isFull == True and self.getNode(x,y).simulatedPiece == False:
                 return "hit"
             else:
                 return self.nodeDic[y*10+x]
         except:
             return "hit"
-
+    #Function for clearing and printing the board.
+    #Works by looping through the lines and adding either a space or X to lines depending on a nodes value then printing it.
     def printBoard(self):
 
         clear()
@@ -90,43 +108,52 @@ class tetris():
             print(line)
              
     def game(self):
-
+        #Runs a loop while alive.
         while(self.alive==True):
-
+            
             if self.movingPiece == True:
                 self.changeSPieces(self.currPieceType, False)
 
+            #Testing if a key is pressed down.
             if msvcrt.kbhit()==True:
+                #Gets the pressed key
                 key = msvcrt.getch()
                 
+                #Moves the piece left if a is clicked.
                 if str(key) == "b'a'":
                     self.movePiece("left")
+                #Moves the key right if d is clicked.
                 if str(key) == "b'd'":
                     self.movePiece("right")
+                #If is is clicked move piece down quicker.
                 if str(key) == "b's'":
                     if self.movingPiece!=False:
                         self.movePieceDown()
+                #If space is clicked drop the piece to the bottom.
                 if str(key) == "b' '":
                         while self.movingPiece==True:
                             self.changeSPieces(self.currPieceType, False)
                             self.movePieceDown()
                             
-
+                #Rotate the pieces based on key clicked.
                 if str(key) == "b'n'":
                     self.rotatePiece("left")
                 if str(key) == "b'm'":
                     self.rotatePiece("right")
-                    
+            
+            #Once per second move the piece down.
             if (self.lastMove - time.time()+1) < 0:
                 self.movePieceDown()
 
+            #Simulate the nodes around the current piece.
             if self.movingPiece == True:
                 self.changeSPieces(self.currPieceType, True)
             
-
+            #Print the board and sleep for 0.08 seconds.
             self.printBoard()
             time.sleep(0.08)
 
+    #Function for creating a piece of a random type.
     def createPiece(self):
 
         self.checkLineClear()
@@ -140,6 +167,8 @@ class tetris():
 
         self.movingPiece = True
 
+    #Function for rotating a piece, takes a direction paramater and checks if the piece is able to be rotated without causing
+    # any problems by testing all of the nodes first to make sure there are no problems.
     def rotatePiece(self, dir):
         blocked = False
         if dir == "left":
@@ -155,6 +184,8 @@ class tetris():
         if blocked==False:
             self.currRotation = newRotation
 
+    #Function for moving a piece down, which also runs the createPiece function if there is not one currently.
+    #Works by testing the piece against all the nodes it will move to then moves the current piece there.
     def movePieceDown(self):
 
         self.lastMove = time.time()
@@ -179,6 +210,8 @@ class tetris():
 
                 self.currPiece = self.getNode(self.currPiece.x, self.currPiece.y+1)
 
+    #Function for moving a piece left or right.
+    #Works by testing the piece against all the nodes it will move to then moves the current piece there.
     def movePiece(self, dir):
         move = True
         if dir == "left":
@@ -202,7 +235,7 @@ class tetris():
 
                 self.currPiece = self.getNode(self.currPiece.x+1, self.currPiece.y)
             
-    #piece types:
+    #Piece types:
     #1 SQUARE
     #2 I
     #3 L
@@ -210,6 +243,7 @@ class tetris():
     #5 S
     #6 rS
     #7 T
+    #Function for creating a dictionary of node positions based on the currents piece position, rotation and piecetype.
     def simulatePieces(self, type, rotation):
 
         if type==1:
@@ -368,13 +402,17 @@ class tetris():
         
         return simulated
 
+    #Runs the simulatePieces Function and changes the variables of those specific nodes.
     def changeSPieces(self, type, isFull):
         
         self.simulatedPieces = self.simulatePieces(type, self.currRotation)
         for node in self.simulatedPieces:
                     self.getNode(node[0], node[1]).isFull = isFull
                     self.getNode(node[0], node[1]).simulatedPiece = isFull
-        
+    
+    #Function for checking each line to see if it is full then running the breakline command on each of them.
+    #Adds score based on how many lines broken with the last move, with 100 per line, 800 for tetris(4 lines at once) and 1200
+    #  for consecutive tetris's.
     def checkLineClear(self):
         breakCount=0
         for y in range(0, 20):
@@ -390,10 +428,18 @@ class tetris():
                 breakCount = breakCount + 1
 
         if breakCount == 4:
-            self.score = self.score + 800
+            if self.lastTetris == True:
+                self.score = self.score + 1200
+            else:
+                self.score = self.score + 800
+
+            self.lastTetris = True
         elif breakCount > 0:
-            self.score = self.score + (breakCount*100)
             
+            self.score = self.score + (breakCount*100)
+            self.lastTetris = False
+
+    #Function for deleting specific row and moving down all the rows above it.        
     def breakLine(self, row):
 
         for x in range(0, 10):
